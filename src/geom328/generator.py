@@ -126,13 +126,32 @@ class RuleBasedSceneGenerator:
             return
 
         # Choose the largest size
-        largest_size = random.uniform(self.MIN_LARGEST_SIZE, self.MAX_LOGICAL_SIZE,)
+        largest_min = max(self.MIN_LARGEST_SIZE, self.MIN_LOGICAL_SIZE + self.MIN_SIZE_DIFFERENCE,)
+
+        if largest_min > self.MAX_LOGICAL_SIZE:
+            raise ValueError(
+                "Invalid size configuration: "
+                "min_size + min_size_difference must not exceed max_size."
+            )
+        
+        largest_size = random.uniform(largest_min, self.MAX_LOGICAL_SIZE,)
     
         # All remaining objects must be smaller
         max_other = largest_size - self.MIN_SIZE_DIFFERENCE
-        
+
+        if max_other < self.MIN_LOGICAL_SIZE:
+            raise RuntimeError(
+                "Invalid size configuration: "
+                "largest object is too small to satisfy "
+                "min_size_difference."
+            )
+
         # Choose which object will be the reference object
-        candidates = [obj for obj in objects if obj.shape == largest_shape]
+        candidates = [
+            obj for obj in objects
+            if obj.shape == largest_shape
+        ]
+
         reference_object = random.choice(candidates)
 
         # Assign sizes
@@ -143,7 +162,11 @@ class RuleBasedSceneGenerator:
             if obj is reference_object:
                 continue
 
-            obj.size = random.uniform(self.MIN_LOGICAL_SIZE, max_other,)
+            obj.size = random.uniform(
+                self.MIN_LOGICAL_SIZE,
+                max_other,
+            )
+
             obj.radius = self.logical_to_pixels(obj.size)
 
     def class_relations(self, class_id):

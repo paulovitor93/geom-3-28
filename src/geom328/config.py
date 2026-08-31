@@ -15,7 +15,6 @@ class GeomConfig:
     # Reproducibility
     # --------------------------------------------------
     seed: int = 42
-    split_seed: int = 42
 
     # Image
     # --------------------------------------------------
@@ -53,6 +52,7 @@ class GeomConfig:
     # Validation
     # --------------------------------------------------
     validate: bool = True
+    validation_attempts: int = 100
 
     # Dataset split
     # --------------------------------------------------
@@ -61,3 +61,48 @@ class GeomConfig:
     train_ratio: float = 0.70
     val_ratio: float = 0.15
     test_ratio: float = 0.15
+
+    def __post_init__(self):
+        if self.min_objects < 1:
+            raise ValueError("min_objects must be at least 1.")
+
+        if self.max_objects < self.min_objects:
+            raise ValueError("max_objects must be greater than or equal to min_objects.")
+
+        if self.min_size <= 0:
+            raise ValueError("min_size must be greater than 0.")
+
+        if self.max_size <= self.min_size:
+            raise ValueError("max_size must be greater than min_size.")
+
+        if self.min_largest_size > self.max_size:
+            raise ValueError("min_largest_size cannot exceed max_size.")
+
+        if self.min_size_difference <= 0:
+            raise ValueError("min_size_difference must be greater than 0.")
+
+        if self.min_size + self.min_size_difference > self.max_size:
+            raise ValueError("min_size + min_size_difference must be less than or equal to max_size.")
+
+        if self.lambda_min < 0:
+            raise ValueError("lambda_min cannot be negative.")
+
+        if self.lambda_min > 1:
+            raise ValueError("lambda_min cannot be greater than 1.")
+
+        if self.train_ratio < 0:
+            raise ValueError("train_ratio cannot be negative.")
+
+        if self.val_ratio < 0:
+            raise ValueError("val_ratio cannot be negative.")
+
+        if self.test_ratio < 0:
+            raise ValueError("test_ratio cannot be negative.")
+
+        ratio_sum = (self.train_ratio + self.val_ratio + self.test_ratio)
+
+        if abs(ratio_sum - 1.0) > 1e-8:
+            raise ValueError("train_ratio + val_ratio + test_ratio must equal 1.")
+
+        if self.validation_attempts < 1:
+            raise ValueError("validation_attempts must be at least 1.")

@@ -1,8 +1,12 @@
+from pathlib import Path
 from .generator import RuleBasedSceneGenerator
 from .renderer_svg import SceneRendererSVG
 from .extractor import ConceptExtractor
 from .dataset_builder import DatasetBuilder
 from .config import GeomConfig
+from .split import DatasetSplitter
+from .validator import SceneValidator
+from .classifier import RuleBasedClassifier
 
 def generate_dataset(
     output_dir="geom328_dataset",
@@ -18,7 +22,17 @@ def generate_dataset(
     min_size_difference=2.2,
     lambda_min=0.2,
     rotation=True,
-):
+    save_png=True,
+    save_svg=True,
+    save_scenes=True,
+    save_metadata=True,
+    validate=True,
+    validation_attempts=100,
+    split=True,
+    train_ratio=0.70,
+    val_ratio=0.15,
+    test_ratio=0.15,
+    ):
     """
     Generate the Geom-3-28 synthetic dataset.
 
@@ -40,6 +54,7 @@ def generate_dataset(
     image_size: int
         Image resolution.
     """
+    output_dir = Path(output_dir)
 
     config = GeomConfig(
         classes=classes,
@@ -54,6 +69,19 @@ def generate_dataset(
         min_size_difference=min_size_difference,
         lambda_min=lambda_min,
         rotation=rotation,
+
+        save_png=save_png,
+        save_svg=save_svg,
+        save_scenes=save_scenes,
+        save_metadata=save_metadata,
+
+        validate=validate,
+        validation_attempts=validation_attempts,
+
+        split=split,
+        train_ratio=train_ratio,
+        val_ratio=val_ratio,
+        test_ratio=test_ratio,
     )
 
     generator = RuleBasedSceneGenerator(config=config,)
@@ -77,10 +105,16 @@ def generate_dataset(
 
     extractor = ConceptExtractor()
 
+    classifier = RuleBasedClassifier(generator.specification)
+
+    validator = SceneValidator(extractor=extractor, classifier=classifier,)
+
     builder = DatasetBuilder(
         generator=generator,
         renderer=renderer,
         extractor=extractor,
+        config=config,
+        validator=validator,
     )
 
     builder.build(
@@ -90,8 +124,24 @@ def generate_dataset(
         classes=selected_classes,
     )
 
+    if config.split:
+
+        if not config.save_metadata:
+            raise ValueError("split=True requires save_metadata=True.")
+
+        splitter = DatasetSplitter(seed=config.seed)
+
+        splitter.split(
+            metadata_csv=output_dir / "metadata" / "metadata.csv",
+            output_dir=output_dir,
+            train_ratio=config.train_ratio,
+            val_ratio=config.val_ratio,
+            test_ratio=config.test_ratio,
+        )
+
 __all__ = [
     "GeomConfig",
     "generate_dataset",
     "RuleBasedSceneGenerator",
+    "RuleBasedClassifier",
 ]

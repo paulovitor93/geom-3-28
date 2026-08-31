@@ -1,7 +1,6 @@
 from pathlib import Path
 import pandas as pd
 import numpy as np
-import random
 
 class DatasetSplitter:
     """
@@ -11,8 +10,8 @@ class DatasetSplitter:
     proportion of samples in each subset.
     """
 
-    def __init__(self):
-        self.seed = random.randint(0, 2**32 - 1)
+    def __init__(self, seed):
+        self.seed = seed
 
     def split(self, metadata_csv, output_dir, train_ratio=0.7, val_ratio=0.15, test_ratio=0.15,):
         if abs(train_ratio + val_ratio + test_ratio - 1.0) > 1e-8:
@@ -37,8 +36,8 @@ class DatasetSplitter:
             rng.shuffle(indices)
             n = len(indices)
 
-            n_train = int(train_ratio * n)
-            n_val = int(val_ratio * n)
+            n_train = round(train_ratio * n)
+            n_val = round(val_ratio * n)
 
             train_idx = indices[:n_train]
             val_idx = indices[n_train:n_train + n_val]
