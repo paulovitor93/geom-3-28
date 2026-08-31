@@ -1,0 +1,20 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "geom-3-28"
+version = "0.1.0"
+description = "Geom-3-28 synthetic geometric dataset generator"
+requires-python = ">=3.10"
+
+dependencies = [
+    "numpy",
+    "pandas",
+    "svgwrite",
+    "resvg-py",
+    "tqdm",
+]
+
+[tool.setuptools.packages.find]
+where = ["src"]
