@@ -1,5 +1,3 @@
-from pathlib import Path
-
 from geom328 import generate_dataset
 
 def test_same_seed_produces_identical_dataset(tmp_path):
@@ -68,6 +66,53 @@ def test_different_seeds_produce_different_dataset(tmp_path):
         seed=456,
         validate=True,
         split=True,
+    )
+
+    scene_a = (output_a / "scenes" / "000000.json").read_bytes()
+    scene_b = (output_b / "scenes" / "000000.json").read_bytes()
+
+    assert scene_a != scene_b
+
+def test_seed_is_generated_when_not_provided(tmp_path):
+    output_dir = tmp_path / "auto_seed"
+
+    generate_dataset(
+        output_dir=output_dir,
+        classes=[0],
+        samples_per_class=2,
+        seed=None,
+        validate=True,
+        split=False,
+    )
+
+    info_file = output_dir / "dataset_info.txt"
+
+    assert info_file.exists()
+
+    content = info_file.read_text()
+
+    assert "Generation seed:" in content
+
+def test_automatic_seeds_produce_different_datasets(tmp_path):
+    output_a = tmp_path / "dataset_a"
+    output_b = tmp_path / "dataset_b"
+
+    generate_dataset(
+        output_dir=output_a,
+        classes=[0, 5, 7],
+        samples_per_class=5,
+        seed=None,
+        validate=True,
+        split=False,
+    )
+
+    generate_dataset(
+        output_dir=output_b,
+        classes=[0, 5, 7],
+        samples_per_class=5,
+        seed=None,
+        validate=True,
+        split=False,
     )
 
     scene_a = (output_a / "scenes" / "000000.json").read_bytes()

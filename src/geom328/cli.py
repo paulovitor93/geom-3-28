@@ -13,7 +13,7 @@ def main():
 
     parser.add_argument("--samples-per-class", type=int, default=100, help="Number of samples per class.",)
 
-    parser.add_argument("--seed", type=int, default=42, help="Random seed.",)
+    parser.add_argument("--seed", type=int, default=None, help="Random seed. If omitted, a random seed is generated.",)
 
     # Image
     # --------------------------------------------------

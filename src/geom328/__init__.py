@@ -1,4 +1,5 @@
 from pathlib import Path
+import random
 from .generator import RuleBasedSceneGenerator
 from .renderer_svg import SceneRendererSVG
 from .extractor import ConceptExtractor
@@ -12,7 +13,7 @@ def generate_dataset(
     output_dir="geom328_dataset",
     classes=None,
     samples_per_class=100,
-    seed=42,
+    seed=None,
     image_size=224,
     min_objects=3,
     max_objects=5,
@@ -55,6 +56,9 @@ def generate_dataset(
         Image resolution.
     """
     output_dir = Path(output_dir)
+
+    if seed is None:
+        seed = random.SystemRandom().randint(0, 2**32 - 1)
 
     config = GeomConfig(
         classes=classes,

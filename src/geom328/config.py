@@ -14,7 +14,7 @@ class GeomConfig:
 
     # Reproducibility
     # --------------------------------------------------
-    seed: int = 42
+    seed: Optional[int] = None
 
     # Image
     # --------------------------------------------------
