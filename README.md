@@ -10,6 +10,35 @@ The dataset contains 28 classes based on combinations of:
 
 The generator can be used through either a Python API or a command-line interface.
 
+# Project Structure
+
+```text
+geom-3-28/
+│
+├── src/
+│   └── geom328/
+│       ├── __init__.py
+│       ├── classifier.py
+│       ├── cli.py
+│       ├── config.py
+│       ├── constants.py
+│       ├── dataset_builder.py
+│       ├── extractor.py
+│       ├── generator.py
+│       ├── geometry.py
+│       ├── objects.py
+│       ├── renderer_svg.py
+│       ├── scene.py
+│       ├── specification.py
+│       ├── split.py
+│       └── validator.py
+│
+├── tests/
+│
+├── pyproject.toml
+├── .gitignore
+└── README.md
+```
 ---
 
 # Features
@@ -152,6 +181,7 @@ generate_geom \
     --samples-per-class 50 \
     --output-dir my_dataset
 ```
+When no classes are specified, all available classes are generated.
 
 ---
 
@@ -309,44 +339,11 @@ The available parameters include:
 | `save_scenes` | `True` | Save scene JSON files |
 | `save_metadata` | `True` | Save metadata CSV |
 | `validate` | `True` | Validate generated scenes |
-| `validation_attempts` | `100` | Maximum validation attempts |
+| `validation_attempts` | `1000` | Maximum validation attempts |
 | `split` | `True` | Create dataset splits |
 | `train_ratio` | `0.70` | Training split ratio |
 | `val_ratio` | `0.15` | Validation split ratio |
 | `test_ratio` | `0.15` | Test split ratio |
-
----
-
-# Selecting Classes
-
-Generate specific classes:
-
-```python
-generate_dataset(
-    output_dir="subset",
-    classes=[0, 5, 7],
-    samples_per_class=50,
-)
-```
-
-Generate all classes:
-
-```python
-generate_dataset(
-    output_dir="all_classes",
-    classes="all",
-    samples_per_class=100,
-)
-```
-
-When no classes are specified, all available classes are generated.
-
-```python
-generate_dataset(
-    output_dir="all_classes",
-    samples_per_class=100,
-)
-```
 
 ---
 
@@ -356,6 +353,15 @@ generate_dataset(
 
 Generate exactly four objects per scene:
 
+```bash
+generate_geom \
+  --output-dir four_objects \
+  --classes 0 5 7 \
+  --samples-per-class 50 \
+  --min-objects 4 \
+  --max-objects 4
+```
+Using Python:
 ```python
 generate_dataset(
     output_dir="four_objects",
@@ -367,7 +373,10 @@ generate_dataset(
 ```
 
 Allow between three and five objects:
-
+```bash
+generate_geom --min-objects 3 --max-objects 5
+```
+Using Python:
 ```python
 generate_dataset(
     min_objects=3,
@@ -379,8 +388,11 @@ generate_dataset(
 
 # Size Configuration
 
-Configure logical object sizes:
-
+Configure object sizes:
+```bash
+generate_geom --min-size 2.0 --max-size 7.0
+```
+Using Python:
 ```python
 generate_dataset(
     min_size=2.0,
@@ -389,7 +401,10 @@ generate_dataset(
 ```
 
 Configure the minimum size of the largest object:
-
+```bash
+generate_geom --min-largest-size 5.0
+```
+Using Python:
 ```python
 generate_dataset(
     min_largest_size=5.0,
@@ -397,7 +412,10 @@ generate_dataset(
 ```
 
 Configure the minimum size difference between the largest object and the other objects:
-
+```bash
+generate_geom --min-size-difference 2.2
+```
+Using Python:
 ```python
 generate_dataset(
     min_size_difference=2.2,
@@ -409,9 +427,12 @@ The configuration validates that the size constraints are feasible.
 ---
 
 # Spatial Configuration
-
+## Overlap Control
 The minimum normalized distance between objects can be configured with `lambda_min`.
-
+```bash
+generate_geom --lambda-min 0.2
+```
+Using Python:
 ```python
 generate_dataset(
     lambda_min=0.2,
@@ -427,19 +448,16 @@ During placement, the normalized distance is computed using the effective radius
 Rotation is enabled by default.
 
 Disable rotation in Python:
+```bash
+generate_geom --no-rotation
+```
+Using Python:
 
 ```python
 generate_dataset(
     rotation=False,
 )
 ```
-
-Disable rotation using the command line:
-
-```bash
-generate_geom --no-rotation
-```
-
 When rotation is disabled, generated objects have an angle of zero.
 
 ---
@@ -456,28 +474,27 @@ During generation:
 4. generation is repeated if the candidate is invalid
 
 The maximum number of attempts can be configured:
-
+```bash
+generate_geom --validation-attempts 1000
+```
+Using Python:
 ```python
 generate_dataset(
     validate=True,
-    validation_attempts=100,
+    validation_attempts=1000,
 )
 ```
 
 Disable validation in Python:
-
+```bash
+generate_geom --no-validation
+```
+Using Python:
 ```python
 generate_dataset(
     validate=False,
 )
 ```
-
-Disable validation using the command line:
-
-```bash
-generate_geom --no-validation
-```
-
 If a valid scene cannot be generated within the configured number of attempts, generation raises an error.
 
 ---
@@ -615,6 +632,10 @@ Test:        15%
 ```
 
 The ratios can be configured:
+```bash
+generate_geom --train-ratio 0.70 --val-ratio 0.15 --test-ratio 0.15
+```
+Using Python:
 
 ```python
 generate_dataset(
@@ -627,103 +648,18 @@ generate_dataset(
 The split ratios must sum to 1.
 
 Splitting can be disabled:
-
+```bash
+generate_geom --no-split
+```
+Using Python:
 ```python
 generate_dataset(
     split=False,
 )
 ```
-
-Or from the command line:
-
-```bash
-generate_geom --no-split
-```
-
 The dataset split uses the generation seed.
 
 ---
-
-# Reproducibility
-
-Geom-3-28 supports both random and reproducible generation.
-
-## Random Generation
-
-If no seed is provided:
-
-```python
-generate_dataset(
-    classes=[0, 5, 7],
-    samples_per_class=50,
-)
-```
-
-a random seed is generated automatically.
-
-The seed is recorded in:
-
-```text
-dataset_info.txt
-```
-
-This allows the generation seed to be reused later.
-
----
-
-## Reproducible Generation
-
-To reproduce a dataset generation configuration, specify a seed:
-
-```python
-generate_dataset(
-    classes=[0, 5, 7],
-    samples_per_class=50,
-    seed=123,
-)
-```
-
-The same seed can be used again with the same generation configuration.
-
----
-
-# Configuration Validation
-
-The configuration validates invalid parameter combinations.
-
-Examples include:
-
-```python
-GeomConfig(min_objects=0)
-```
-
-```python
-GeomConfig(
-    min_objects=5,
-    max_objects=3,
-)
-```
-
-```python
-GeomConfig(
-    min_size=3.0,
-    max_size=5.0,
-    min_size_difference=2.2,
-)
-```
-
-```python
-GeomConfig(
-    train_ratio=0.5,
-    val_ratio=0.2,
-    test_ratio=0.2,
-)
-```
-
-Invalid configurations raise `ValueError`.
-
----
-
 # Examples
 
 ## Generate 50 samples from three classes
@@ -863,37 +799,5 @@ The test suite covers:
 - reproducibility
 - dataset splitting
 - scene validation
-
----
-
-# Project Structure
-
-```text
-geom-3-28/
-│
-├── src/
-│   └── geom328/
-│       ├── __init__.py
-│       ├── classifier.py
-│       ├── cli.py
-│       ├── config.py
-│       ├── constants.py
-│       ├── dataset_builder.py
-│       ├── extractor.py
-│       ├── generator.py
-│       ├── geometry.py
-│       ├── objects.py
-│       ├── renderer_svg.py
-│       ├── scene.py
-│       ├── specification.py
-│       ├── split.py
-│       └── validator.py
-│
-├── tests/
-│
-├── pyproject.toml
-├── .gitignore
-└── README.md
-```
 
 ---

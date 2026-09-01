@@ -52,7 +52,7 @@ class GeomConfig:
     # Validation
     # --------------------------------------------------
     validate: bool = True
-    validation_attempts: int = 100
+    validation_attempts: int = 1000
 
     # Dataset split
     # --------------------------------------------------
